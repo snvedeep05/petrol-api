@@ -1,13 +1,15 @@
-from fastapi import FastAPI, Request, HTTPException
+import os
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from typing import Optional
 import cloudscraper
 from bs4 import BeautifulSoup
 
 app = FastAPI()
-API_KEY = "hdgnnjrhrbnn3iiiuyy485775jdgbdgfbbkj5"  # Replace with a secure key
 
-# Mappings and URLs (same as your script)
+# Use environment variable for API key, fallback to default
+API_KEY = os.getenv("API_KEY", "vedeep05harsha7586444322ud33enrjjtt")
+
 shortcut_map = {
     "AN": "Andaman and Nicobar", "AP": "Andhra Pradesh", "AR": "Arunachal Pradesh",
     "AS": "Assam", "BR": "Bihar", "CH": "Chandigarh", "CT": "Chhattisgarh",
@@ -54,9 +56,8 @@ def get_price(state_name):
     except Exception as e:
         return None, str(e)
 
-# 🔐 API Endpoint with API key check
 @app.get("/petrol-price/")
-async def fetch_price(state: str, request: Request, api_key: Optional[str] = None):
+async def fetch_price(state: str, api_key: Optional[str] = None):
     if api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized: Invalid API Key")
 
@@ -67,5 +68,5 @@ async def fetch_price(state: str, request: Request, api_key: Optional[str] = Non
     price, error = get_price(resolved)
     if error:
         return JSONResponse(status_code=500, content={"error": error})
-    
+
     return {"state": resolved, "petrol_price": price}
